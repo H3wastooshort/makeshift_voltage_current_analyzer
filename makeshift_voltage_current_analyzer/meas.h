@@ -1,24 +1,32 @@
+volatile bool adc_coversion_done = false;
+void ARDUINO_ISR_ATTR adcComplete() {
+  adc_coversion_done = true;
+}
+
+
 struct data_rec_struct {
+  uint8_t pin = 0xFF;
   uint32_t time;
-  uint16_t voltage_mv;
-  uint16_t current_mv;
+  uint16_t millivolt;
 };
 using data_rec_t = struct data_rec_struct;
 
 
-data_rec_t make_measurement() {
-  uint32_t voltage_mv = 0, current_mv = 0;
-  for (uint16_t i = 0; i < n_samples_avg; i++) {
-    voltage_mv += analogReadMilliVolts(voltage_pin);
-    current_mv += analogReadMilliVolts(current_pin);
+adc_continuous_data_t *result = NULL;
+void handle_adc(File *file) {
+  static bool blinky = 0;
+  if (adc_coversion_done == true) {
+    adc_coversion_done = false;
+    if (analogContinuousRead(&result, 0)) {
+      for (uint8_t i = 0; i < sizeof(pins_to_read); i++) {
+        data_rec_t rec;
+        rec.pin = result[i].pin;
+        rec.time = micros();
+        rec.millivolt = result[i].avg_read_mvolts;
+        file->write((const uint8_t *)(const void *)&rec, sizeof(rec));
+        digitalWrite(led_pin, blinky);
+        blinky ^= 1;
+      }
+    }
   }
-  voltage_mv /= n_samples_avg;
-  current_mv /= n_samples_avg;
-
-  data_rec_t rec;
-  rec.time = micros();
-  rec.voltage_mv = voltage_mv;
-  rec.current_mv = current_mv;
-
-  return rec;
 }

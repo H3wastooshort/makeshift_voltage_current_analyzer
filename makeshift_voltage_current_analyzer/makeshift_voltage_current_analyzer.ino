@@ -65,16 +65,14 @@ void setup() {
   }
   //end of copied section
 
-  pinMode(voltage_pin, INPUT);
-  pinMode(current_pin, INPUT);
-  analogReadResolution(12);
-  analogSetAttenuation(ADC_ATTENDB_MAX);
+  for (uint8_t i = 0; i < sizeof(pins_to_read); i++) pinMode(pins_to_read[i], INPUT);
+  analogContinuousSetWidth(12);
+  analogContinuousSetAtten(ADC_11db);
+  analogContinuous(pins_to_read, sizeof(pins_to_read), n_samples_avg, sample_rate * n_samples_avg, &adcComplete);
+  analogContinuousStart();
 }
 
-bool blinky = 0;
+
 void loop() {
-  const data_rec_t rec = make_measurement();
-  file.write((const uint8_t*)(const void*)&rec, sizeof(rec));
-  digitalWrite(led_pin, blinky);
-  blinky ^= 1;
+  handle_adc(&file);
 }
