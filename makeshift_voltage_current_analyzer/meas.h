@@ -12,14 +12,14 @@ struct data_rec_struct {
 using data_rec_t = struct data_rec_struct;
 
 
+
+bool blinky = 0;
+uint16_t tick = 0;
 adc_continuous_data_t *result = NULL;
 void handle_adc(File *file) {
-  static bool blinky = 0;
-  static uint16_t tick = 0;
   if (adc_coversion_done) {
     adc_coversion_done = false;
     if (analogContinuousRead(&result, 0)) {
-      Serial.println('R');
       for (uint8_t i = 0; i < sizeof(pins_to_read); i++) {
         data_rec_t rec;
         rec.pin = result[i].pin;
@@ -28,7 +28,7 @@ void handle_adc(File *file) {
         file->write((const uint8_t *)(const void *)&rec, sizeof(rec));
 
         tick++;
-        if (tick > sample_rate) {  //every second
+        if (tick > actual_sr) {  //every second
           tick = 0;
           file->flush();
           digitalWrite(led_pin, blinky);
