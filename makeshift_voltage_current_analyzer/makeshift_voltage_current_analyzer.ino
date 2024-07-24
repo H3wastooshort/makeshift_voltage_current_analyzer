@@ -19,7 +19,12 @@ void setup() {
   //copied from the SD_Test example
   if (!SD_MMC.begin("/sdcard", true)) {
     Serial.println(F("Card Mount Failed"));
-    return;
+    while (1) {
+      digitalWrite(led_pin, LOW);
+      delay(100);
+      digitalWrite(led_pin, HIGH);
+      delay(100);
+    }
   }
 
   uint8_t cardType = SD_MMC.cardType();
@@ -51,7 +56,12 @@ void setup() {
   file = SD_MMC.open(filename, FILE_APPEND);
   if (!file) {
     Serial.println(F("Failed to open file for appending"));
-    return;
+    while (1) {
+      digitalWrite(led_pin, LOW);
+      delay(200);
+      digitalWrite(led_pin, HIGH);
+      delay(200);
+    }
   }
   //end of copied section
 
