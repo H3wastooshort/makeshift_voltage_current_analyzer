@@ -69,8 +69,8 @@ void setup() {
   for (uint8_t i = 0; i < sizeof(pins_to_read); i++) pinMode(pins_to_read[i], INPUT);
   analogContinuousSetWidth(12);
   analogContinuousSetAtten(ADC_11db);
-  analogContinuous(pins_to_read, sizeof(pins_to_read), n_samples_avg, sample_rate, &adcComplete);
-  analogContinuousStart();
+  if (!analogContinuous(pins_to_read, sizeof(pins_to_read), n_samples_avg, sample_rate, &adcComplete)) Serial.println(F("analogContinuous FAILED"));
+  if (!analogContinuousStart()) Serial.println(F("analogContinuousStart FAILED"));
   Serial.println(F("started ADC"));
 
   digitalWrite(led_pin, HIGH);
@@ -79,5 +79,4 @@ void setup() {
 
 void loop() {
   handle_adc(&file);
-  Serial.println('L');
 }

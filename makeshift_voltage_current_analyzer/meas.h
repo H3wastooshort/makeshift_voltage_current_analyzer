@@ -16,9 +16,10 @@ adc_continuous_data_t *result = NULL;
 void handle_adc(File *file) {
   static bool blinky = 0;
   static uint16_t tick = 0;
-  if (adc_coversion_done == true) {
+  if (adc_coversion_done) {
     adc_coversion_done = false;
     if (analogContinuousRead(&result, 0)) {
+      Serial.println('R');
       for (uint8_t i = 0; i < sizeof(pins_to_read); i++) {
         data_rec_t rec;
         rec.pin = result[i].pin;
