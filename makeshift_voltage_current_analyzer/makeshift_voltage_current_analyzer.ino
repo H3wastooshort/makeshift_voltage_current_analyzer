@@ -64,15 +64,20 @@ void setup() {
     }
   }
   //end of copied section
+  Serial.println(F("SD Card OK"));
 
   for (uint8_t i = 0; i < sizeof(pins_to_read); i++) pinMode(pins_to_read[i], INPUT);
   analogContinuousSetWidth(12);
   analogContinuousSetAtten(ADC_11db);
-  analogContinuous(pins_to_read, sizeof(pins_to_read), n_samples_avg, sample_rate * n_samples_avg, &adcComplete);
+  analogContinuous(pins_to_read, sizeof(pins_to_read), n_samples_avg, sample_rate, &adcComplete);
   analogContinuousStart();
+  Serial.println(F("started ADC"));
+
+  digitalWrite(led_pin, HIGH);
 }
 
 
 void loop() {
   handle_adc(&file);
+  Serial.println('L');
 }
