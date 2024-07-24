@@ -1,6 +1,5 @@
 #include <FS.h>
-#include <SD.h>
-#include <SPI.h>
+#include <SD_MMC.h>
 
 #include "conf.h"
 #include "meas.h"
@@ -16,18 +15,14 @@ void setup() {
   Serial.write(' ');
   Serial.println(__TIME__);
 
-  pinMode(voltage_pin, INPUT);
-  pinMode(current_pin, INPUT);
-  analogReadResolution(12);
-  analogSetAttenuation(ADC_ATTENDB_MAX);
 
   //copied from the SD_Test example
-  if (!SD.begin()) {
-    Serial.println(F("Card Mount Failed");
+  if (!SD_MMC.begin("/sdcard", true)) {
+    Serial.println(F("Card Mount Failed"));
     return;
   }
-  
-  uint8_t cardType = SD.cardType();
+
+  uint8_t cardType = SD_MMC.cardType();
   Serial.print(F("SD Card Type: "));
   switch (cardType) {
     case CARD_NONE:
@@ -47,18 +42,23 @@ void setup() {
       break;
   }
 
-  uint64_t cardSize = SD.cardSize() / (1024 * 1024);
+  uint64_t cardSize = SD_MMC.cardSize() / (1024 * 1024);
   Serial.printf("SD Card Size: %lluMB\n", cardSize);
 
-  Serial.printf("Total space: %lluMB\n", SD.totalBytes() / (1024 * 1024));
-  Serial.printf("Used space: %lluMB\n", SD.usedBytes() / (1024 * 1024));
+  Serial.printf("Total space: %lluMB\n", SD_MMC.totalBytes() / (1024 * 1024));
+  Serial.printf("Used space: %lluMB\n", SD_MMC.usedBytes() / (1024 * 1024));
 
-  file = SD.open(filename, FILE_APPEND);
+  file = SD_MMC.open(filename, FILE_APPEND);
   if (!file) {
     Serial.println(F("Failed to open file for appending"));
     return;
   }
   //end of copied section
+
+  pinMode(voltage_pin, INPUT);
+  pinMode(current_pin, INPUT);
+  analogReadResolution(12);
+  analogSetAttenuation(ADC_ATTENDB_MAX);
 }
 
 bool blinky = 0;
