@@ -24,6 +24,7 @@ void handle_adc(File *file) {
         rec.time = micros();
         rec.millivolt = result[i].avg_read_mvolts;
         file->write((const uint8_t *)(const void *)&rec, sizeof(rec));
+        file->flush();
         digitalWrite(led_pin, blinky);
         blinky ^= 1;
       }
