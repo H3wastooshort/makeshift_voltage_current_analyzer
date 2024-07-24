@@ -8,6 +8,8 @@
 File file;
 
 void setup() {
+  pinMode(led_pin, OUTPUT);
+  digitalWrite(led_pin, LOW);
   Serial.begin(115200);
   Serial.print(F("MVCA, compiled "));
   Serial.print(__DATE__);
@@ -17,29 +19,32 @@ void setup() {
   pinMode(voltage_pin, INPUT);
   pinMode(current_pin, INPUT);
   analogReadResolution(12);
-  analogSetAttenuation(ADC_ATTEN_DB_11);
+  analogSetAttenuation(ADC_ATTENDB_MAX);
 
   //copied from the SD_Test example
   if (!SD.begin()) {
-    Serial.println("Card Mount Failed");
+    Serial.println(F("Card Mount Failed");
     return;
   }
+  
   uint8_t cardType = SD.cardType();
-
-  if (cardType == CARD_NONE) {
-    Serial.println("No SD card attached");
-    return;
-  }
-
-  Serial.print("SD Card Type: ");
-  if (cardType == CARD_MMC) {
-    Serial.println("MMC");
-  } else if (cardType == CARD_SD) {
-    Serial.println("SDSC");
-  } else if (cardType == CARD_SDHC) {
-    Serial.println("SDHC");
-  } else {
-    Serial.println("UNKNOWN");
+  Serial.print(F("SD Card Type: "));
+  switch (cardType) {
+    case CARD_NONE:
+      Serial.println(F("No SD card attached"));
+      break;
+    case CARD_MMC:
+      Serial.println(F("MMC"));
+      break;
+    case CARD_SD:
+      Serial.println(F("SDSC"));
+      break;
+    case CARD_SDHC:
+      Serial.println(F("SDHC"));
+      break;
+    default:
+      Serial.println(F("UNKNOWN"));
+      break;
   }
 
   uint64_t cardSize = SD.cardSize() / (1024 * 1024);
@@ -56,5 +61,10 @@ void setup() {
   //end of copied section
 }
 
+bool blinky = 0;
 void loop() {
+  const data_rec_t rec = make_measurement();
+  file.write((const uint8_t*)(const void*)&rec, sizeof(rec));
+  digitalWrite(led_pin, blinky);
+  blinky ^= 1;
 }

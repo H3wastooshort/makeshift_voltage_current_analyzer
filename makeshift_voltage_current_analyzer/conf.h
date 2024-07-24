@@ -1,5 +1,7 @@
-const uint8_t voltage_pin = 14;
-const uint8_t current_pin = 15;
+const uint8_t voltage_pin = 12;
+const uint8_t current_pin = 13;
+
+const uint8_t led_pin = 33;
 
 const uint16_t n_samples_avg = 100;
 
