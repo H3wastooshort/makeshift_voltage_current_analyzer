@@ -1,7 +1,7 @@
 
 /*
 Format:
-[32 time][1 n_pins] [1 pin][2 millivolts]... 
+[32 time][8 n_pins] [8 pin][16 millivolts]... 
 2nd half repeats for each pin
 */
 
@@ -54,9 +54,9 @@ void handle_adc(File *file) {
     bytes_this_round++;
 
     if (bytes_this_round == ADC_BUF_SIZE) Serial.println("ADC OVERFLOW");
-    if (bytes_this_round > ADC_BUF_SIZE * 10) {
-      Serial.println("Written 10 full buffers in one go! SD Card can't keep up with ADC!!");
-      ESP.restart();
+    if (bytes_this_round > ADC_BUF_SIZE * 3) {
+      Serial.println("Written 3 full buffers in one go! SD Card can't keep up with ADC!!");
+      break;
     }
   }
   if (adc_error) {

@@ -64,8 +64,17 @@ void setup() {
     }
   }
   //end of copied section
-  for (uint8_t i = 0; i < 3; i++) file.write((uint8_t)0x00); //zeroed-out header means reboot
+  uint64_t bytes_free = SD_MMC.totalBytes() - SD_MMC.usedBytes();
+  float mb_per_min = (bytes_per_second / 1E6) * 60;
+  Serial.print(F("Bitrate [MB/min]: "));
+  Serial.println(mb_per_min);
+  float rec_mins = bytes_free / (bytes_per_second * 60.0);
+  Serial.print(F("Recording time left [min]: "));
+  Serial.println(rec_mins);
+
+  for (uint8_t i = 0; i < 3; i++) file.write((uint8_t)0x00);  //zeroed-out header means reboot
   Serial.println(F("SD Card OK"));
+
 
   for (uint8_t i = 0; i < sizeof(pins_to_read); i++) pinMode(pins_to_read[i], INPUT);
   analogContinuousSetWidth(12);

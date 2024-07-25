@@ -4,6 +4,9 @@ if len(sys.argv) != 2:
 
 with open(sys.argv[1],'rb') as f:
     while True:
-        dat = f.read(6)
-        (voltage,pin,flags,time)=struct.unpack('<HBBH', dat)
-        print("Pin %d has %dmV at %dµS"%(pin,voltage,time))
+        header = f.read(5)
+        (time,n_entries)=struct.unpack('<IB', dat)
+        for range(0,n_entries):
+            entry = f.read(3)
+            (pin,millivolt)=struct.unpack('<BH', dat)
+            print("Pin %d has %dmV at %dµS"%(pin,millivolt,time))
