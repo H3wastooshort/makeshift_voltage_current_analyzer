@@ -28,8 +28,7 @@ void ARDUINO_ISR_ATTR adcComplete() {
       adc_buf[adc_buf_write_idx + 2] = (result[i].pin >> 1) & 0xFF;
       adc_buf_write_idx += 3;  //data 3bytes * n_pins
     }
-  }
-  else adc_error = true;
+  } else adc_error = true;
 }
 
 bool blinky = 0;
@@ -46,6 +45,7 @@ void handle_adc(File *file) {
     tick++;
     if (tick > bytes_per_second) {  //every second
       tick = 0;
+      file->flush();
       digitalWrite(led_pin, blinky);
       blinky ^= 1;
     }
@@ -53,10 +53,14 @@ void handle_adc(File *file) {
     adc_buf_read_idx++;
     bytes_this_round++;
 
+    if (bytes_this_round == ADC_BUF_SIZE) Serial.println("ADC OVERFLOW");
     if (bytes_this_round > ADC_BUF_SIZE * 10) {
       Serial.println("Written 10 full buffers in one go! SD Card can't keep up with ADC!!");
       ESP.restart();
     }
   }
-  Serial.println(bytes_this_round);
+  if (adc_error) {
+    Serial.println("ADC ERROR");
+    adc_error = false;
+  }
 }
