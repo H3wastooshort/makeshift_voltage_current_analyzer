@@ -43,7 +43,7 @@ void handle_adc(File *file) {
 
     file->write(&adc_buf[adc_buf_read_idx], ENTRY_SIZE);
 
-    tick++;
+    tick += ENTRY_SIZE;
     if (tick > bytes_per_second) {  //every second
       tick = 0;
       file->flush();
