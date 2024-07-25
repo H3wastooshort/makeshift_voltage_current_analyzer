@@ -25,8 +25,8 @@ void ARDUINO_ISR_ATTR adcComplete() {
 
     for (uint8_t i = 0; i < n_pins; i++) {
       adc_buf[adc_buf_write_idx + 0] = result[i].pin;
-      adc_buf[adc_buf_write_idx + 1] = (result[i].pin >> 0) & 0xFF;
-      adc_buf[adc_buf_write_idx + 2] = (result[i].pin >> 1) & 0xFF;
+      adc_buf[adc_buf_write_idx + 1] = (result[i].avg_read_mvolts >> 0) & 0xFF;
+      adc_buf[adc_buf_write_idx + 2] = (result[i].avg_read_mvolts >> 1) & 0xFF;
       adc_buf_write_idx += 3;  //data 3bytes * n_pins
     }
   } else adc_error = true;
@@ -51,8 +51,8 @@ void handle_adc(File *file) {
       blinky ^= 1;
     }
 
-    adc_buf_read_idx++;
-    bytes_this_round++;
+    adc_buf_read_idx += ENTRY_SIZE;
+    bytes_this_round += ENTRY_SIZE;
 
     if (bytes_this_round == ADC_BUF_SIZE) Serial.println("ADC OVERFLOW");
     if (bytes_this_round > ADC_BUF_SIZE * 3) {
