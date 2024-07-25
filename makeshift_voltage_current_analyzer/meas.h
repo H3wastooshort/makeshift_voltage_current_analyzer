@@ -1,17 +1,9 @@
 volatile bool adc_coversion_done = false;
+volatile bool adc_coversion_overflow = false;
 void ARDUINO_ISR_ATTR adcComplete() {
+  if (adc_coversion_done) adc_coversion_overflow = true;
   adc_coversion_done = true;
 }
-
-
-struct data_rec_struct {
-  uint8_t pin = 0xFF;
-  uint32_t time;
-  uint16_t millivolt;
-};
-using data_rec_t = struct data_rec_struct;
-
-
 
 bool blinky = 0;
 uint16_t tick = 0;
@@ -20,12 +12,20 @@ void handle_adc(File *file) {
   if (adc_coversion_done) {
     adc_coversion_done = false;
     if (analogContinuousRead(&result, 0)) {
-      for (uint8_t i = 0; i < sizeof(pins_to_read); i++) {
-        data_rec_t rec;
-        rec.pin = result[i].pin;
-        rec.time = micros();
-        rec.millivolt = result[i].avg_read_mvolts;
-        file->write((const uint8_t *)(const void *)&rec, sizeof(rec));
+      for (uint8_t i = 0; i < sizeof(pins_to_read) / sizeof(pins_to_read[0]); i++) {
+        uint16_t time = micros();
+
+        uint8_t flags = 0;
+        if (adc_coversion_overflow) flags |= 0b00000001;
+
+        //[16 millivolts] [8 flags] [8 pin] [16 timecode]
+        uint32_t buf = 0;
+        buf |= result[i].avg_read_mvolts & 0xFFFF;
+        buf |= (result[i].pin & 0xFF) << 16;
+        buf |= (flags & 0xFF) << 24;
+
+        file->write((uint8_t *)&buf, 4);
+        file->write((uint8_t *)&time, 2);
 
         tick++;
         if (tick > actual_sr) {  //every second
@@ -35,6 +35,12 @@ void handle_adc(File *file) {
           blinky ^= 1;
         }
       }
+    } else Serial.println("ADC read error.");
+
+
+    if (adc_coversion_overflow) {
+      Serial.println('O');
+      adc_coversion_overflow = false;
     }
   }
 }

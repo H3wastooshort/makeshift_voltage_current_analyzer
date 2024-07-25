@@ -64,6 +64,8 @@ void setup() {
     }
   }
   //end of copied section
+
+  for (uint8_t i = 0; i < 6; i++) file.write((uint8_t)0xFF);  //an entry fully 0xFF signifies a reboot
   Serial.println(F("SD Card OK"));
 
   for (uint8_t i = 0; i < sizeof(pins_to_read); i++) pinMode(pins_to_read[i], INPUT);
