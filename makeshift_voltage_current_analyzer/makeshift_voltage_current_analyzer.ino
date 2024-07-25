@@ -17,7 +17,7 @@ void setup() {
 
 
   //copied from the SD_Test example
-  if (!SD_MMC.begin("/sdcard", true)) {
+  if (!SD_MMC.begin("/sdcard", false)) {
     Serial.println(F("Card Mount Failed"));
     while (1) {
       digitalWrite(led_pin, LOW);
@@ -64,8 +64,7 @@ void setup() {
     }
   }
   //end of copied section
-
-  for (uint8_t i = 0; i < 6; i++) file.write((uint8_t)0xFF);  //an entry fully 0xFF signifies a reboot
+  for (uint8_t i = 0; i < 3; i++) file.write((uint8_t)0x00); //zeroed-out header means reboot
   Serial.println(F("SD Card OK"));
 
   for (uint8_t i = 0; i < sizeof(pins_to_read); i++) pinMode(pins_to_read[i], INPUT);
