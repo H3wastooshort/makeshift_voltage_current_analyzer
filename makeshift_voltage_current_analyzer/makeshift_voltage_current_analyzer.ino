@@ -72,7 +72,7 @@ void setup() {
   Serial.print(F("Recording time left [min]: "));
   Serial.println(rec_mins);
 
-  for (uint8_t i = 0; i < 3; i++) file.write((uint8_t)0x00);  //zeroed-out header means reboot
+  for (uint8_t i = 0; i < HEADER_SIZE; i++) file.write((uint8_t)0x00);  //zeroed-out header means reboot
   Serial.println(F("SD Card OK"));
 
 

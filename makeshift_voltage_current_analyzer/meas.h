@@ -5,7 +5,8 @@ Format:
 2nd half repeats for each pin
 */
 
-constexpr uint8_t ENTRY_SIZE = 5 + (3 * n_pins);
+const uint8_t HEADER_SIZE = 5;
+constexpr uint16_t ENTRY_SIZE = HEADER_SIZE + (3 * n_pins);
 
 constexpr size_t ADC_BUF_SIZE = ENTRY_SIZE * 1000;
 uint8_t adc_buf[ADC_BUF_SIZE] = { 0 };

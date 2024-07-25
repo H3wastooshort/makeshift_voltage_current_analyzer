@@ -5,8 +5,11 @@ if len(sys.argv) != 2:
 with open(sys.argv[1],'rb') as f:
     while True:
         header = f.read(5)
-        (time,n_entries)=struct.unpack('<IB', dat)
-        for range(0,n_entries):
-            entry = f.read(3)
-            (pin,millivolt)=struct.unpack('<BH', dat)
-            print("Pin %d has %dmV at %dµS"%(pin,millivolt,time))
+        (time,n_readings)=struct.unpack('<IB', header)
+        if n_readings>0:
+            for i in range(0,n_readings):
+                reading = f.read(3)
+                (pin,millivolt)=struct.unpack('<BH', reading)
+                print("Pin %d has %dmV at %dµS"%(pin,millivolt,time))
+        else:
+            print("REBOOT")
