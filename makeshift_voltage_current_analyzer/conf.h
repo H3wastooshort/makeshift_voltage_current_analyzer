@@ -1,4 +1,4 @@
-uint8_t pins_to_read[] = { 34, 35 };
+uint8_t pins_to_read[] = { 36, 39 };
 constexpr uint8_t n_pins = sizeof(pins_to_read) / sizeof(pins_to_read[0]);
 
 const uint8_t led_pin = 33;
