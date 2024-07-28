@@ -4,7 +4,7 @@ struct stats_stuct {
   uint16_t max = 0x00;
 
   uint64_t sum = 0;
-  uint64_t n = 0;
+  uint32_t n = 0;
 };
 using pin_stats_t = struct stats_stuct;
 
@@ -21,23 +21,35 @@ inline void update_stats(uint8_t idx, uint16_t mv) {
 void output_stats() {
   no_update_stats = true;
   for (uint8_t i = 0; i < n_pins; i++) {
-    auto min = pin_stats[i].min;
-    auto max = pin_stats[i].max;
-    auto sum = pin_stats[i].sum;
-    auto n = pin_stats[i].n;
+    uint16_t min = pin_stats[i].min;
+    uint16_t max = pin_stats[i].max;
+    uint64_t sum = pin_stats[i].sum;
+    uint32_t n = pin_stats[i].n;
 
     pin_stats[i].min = 0;
     pin_stats[i].max = 0xFF;
     pin_stats[i].sum = 0;
     pin_stats[i].n = 0;
 
-    uint16_t avg = pin_stats[i].sum / pin_stats[i].n;
+    uint32_t avg = sum / n;
 
     uint8_t pin = pins_to_read[i];
 
-    char buf[256];
-    snprintf(buf, sizeof(buf), "Pin %02d: %04dmV (%04dmV-%04dmV) over %d samples", pin, avg, min, max, n);
-    Serial.println(buf);
+    Serial.print("Pin ");
+    Serial.print(pin);
+    Serial.print(": ");
+    Serial.print(avg);
+    Serial.print("mV");
+    Serial.print(" (");
+    Serial.print(min);
+    Serial.print("-");
+    Serial.print(max);
+    Serial.print(") over ");
+    Serial.print(n);
+    Serial.print("samples");
+
+    //Serial.printf("Pin %02u: %04umV (%04umV-%04umV) over %u samples", pin, avg, min, max, n);
+    Serial.println();
   }
   no_update_stats = false;
 }
