@@ -35,8 +35,11 @@ void output_stats() {
 
     uint8_t pin = pins_to_read[i];
 
-    Serial.printf("Pin %02u: %04umV (%04umV-%04umV) over %u samples", pin, avg, min, max, n);
-    Serial.println();
+    char buf[128];
+    snprintf(buf, sizeof(buf), "Pin %02u: %04umV (%04umV-%04umV) over %u samples", pin, avg, min, max, n);
+
+    Serial.println(buf);
+    SerialBT.println(buf);
   }
   no_update_stats = false;
 }
