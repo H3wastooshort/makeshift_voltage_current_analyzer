@@ -1,12 +1,11 @@
 bool no_update_stats = false;
-struct stats_stuct {
-  uint16_t min = 0xFF;
-  uint16_t max = 0x00;
+struct pin_stats_t {
+  uint16_t min = 0xFFFF;
+  uint16_t max = 0;
 
   uint64_t sum = 0;
   uint32_t n = 0;
 };
-using pin_stats_t = struct stats_stuct;
 
 pin_stats_t pin_stats[n_pins];
 
@@ -26,29 +25,17 @@ void output_stats() {
     uint64_t sum = pin_stats[i].sum;
     uint32_t n = pin_stats[i].n;
 
-    pin_stats[i].min = 0;
-    pin_stats[i].max = 0xFF;
+    pin_stats[i].min = 0xFFFF;
+    pin_stats[i].max = 0;
     pin_stats[i].sum = 0;
     pin_stats[i].n = 0;
 
-    uint32_t avg = sum / n;
+    uint32_t avg = 0;
+    if (n > 0) avg = sum / n;
 
     uint8_t pin = pins_to_read[i];
 
-    Serial.print("Pin ");
-    Serial.print(pin);
-    Serial.print(": ");
-    Serial.print(avg);
-    Serial.print("mV");
-    Serial.print(" (");
-    Serial.print(min);
-    Serial.print("-");
-    Serial.print(max);
-    Serial.print(") over ");
-    Serial.print(n);
-    Serial.print("samples");
-
-    //Serial.printf("Pin %02u: %04umV (%04umV-%04umV) over %u samples", pin, avg, min, max, n);
+    Serial.printf("Pin %02u: %04umV (%04umV-%04umV) over %u samples", pin, avg, min, max, n);
     Serial.println();
   }
   no_update_stats = false;

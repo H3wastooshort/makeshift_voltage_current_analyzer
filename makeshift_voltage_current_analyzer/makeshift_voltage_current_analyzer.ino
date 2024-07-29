@@ -90,8 +90,8 @@ void setup() {
 uint64_t last_stats = 0;
 void loop() {
   handle_adc(&file);
-  /*if (millis() - last_stats > 100) {
+  if (millis() - last_stats > 100) {
     last_stats=millis();
     output_stats();
-  }*/
+  }
 }
