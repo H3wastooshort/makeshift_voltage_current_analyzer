@@ -12,6 +12,7 @@ File file;
 void setup() {
   pinMode(led_pin, OUTPUT);
   digitalWrite(led_pin, LOW);
+  pinMode(0, INPUT);
   Serial.begin(115200);
   Serial.print(F("MVCA, compiled "));
   Serial.print(__DATE__);
@@ -79,9 +80,17 @@ void setup() {
   Serial.println(F("SD Card OK"));
 
 
-  SerialBT.begin("MVCA");
-  delay(5000);
-  Serial.println(F("started BT"));
+  delay(1000);
+  if (!digitalRead(0)) {
+    SerialBT.begin("MVCA");
+    while (!digitalRead(0)) {  //pairing crashed the ADC interrupt i think, hold GPIO0 low to enable and pair BT.
+      digitalWrite(led_pin, HIGH);
+      delay(50);
+      digitalWrite(led_pin, LOW);
+      delay(50);
+    }
+    Serial.println(F("started BT"));
+  }
 
   for (uint8_t i = 0; i < sizeof(pins_to_read); i++) pinMode(pins_to_read[i], INPUT);
   analogContinuousSetWidth(12);
