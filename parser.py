@@ -63,7 +63,7 @@ def convert_readings(v_reading,i_reading):
     return (V_mV, I_mA)
 
 def get_energy(delta_uS,mV,mA):
-    return mV*mA*delta_uS / (1E3*1E3) #energy in J
+    return mV*mA*delta_uS / (1E3*1E3*1E5) #energy in J
 
 array=[]
 results=[]
@@ -93,7 +93,7 @@ def to_parsed(array):
     ts=array[0][0]/1E6
     V_pp=(max_mV-min_mV)/1E3
     I_pp=(max_mA-min_mA)/1E3
-    P=E/full_delta
+    P=E/(full_delta/1E6)
     r=[ts, V_pp, I_pp, P]
     print(r)
     results.append(r)
