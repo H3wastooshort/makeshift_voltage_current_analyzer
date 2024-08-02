@@ -22,7 +22,7 @@ results=[]
 
 last_uS = 0
 def do_graph(array):
-    for i in range(0,len(array),window_size)
+    for i in range(0,len(array),window_size):
         min_mV=0xFFFF
         min_mA=0xFFFF
         max_mV=-0xFFFF
@@ -48,4 +48,6 @@ def do_graph(array):
         V_pp=(max_mV-min_mV)/1E3
         I_pp=(max_mA-min_mA)/1E3
         P=E/full_delta
-        results.append([ts, V_pp, I_pp, P])
+        r=[ts, V_pp, I_pp, P]
+        print(r)
+        results.append(r)
