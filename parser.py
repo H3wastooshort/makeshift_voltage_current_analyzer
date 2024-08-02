@@ -39,7 +39,7 @@ if sys.argv[2] in ['pcm']:
 
 array = {}
 def to_array(outfile,time,pins):
-    array+=[time,pins]
+    array.append([time,pins])
 
 with open(sys.argv[1],'rb') as f:
     with open(sys.argv[3], outmode) as outfile:

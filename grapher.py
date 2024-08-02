@@ -16,8 +16,9 @@ def convert_readings(v_reading,i_reading):
     return (V_mV, I_mA)
 
 def get_energy(delta_uS,mV,mA):
-    return mV*mA*delta_uS / (1E3*1E3*1E6) #energy in J
+    return mV*mA*delta_uS / (1E3*1E3) #energy in J
 
+results=[]
 
 last_uS = 0
 def do_graph(array):
@@ -39,8 +40,12 @@ def do_graph(array):
             E += get_energy(delta_uS,mV,mA)
             full_delta+=delta_uS
             
-            max_mA=max(max_mA,mA)
+            max_mV=max(max_mV,mV)
             max_mA=max(max_mA,mA)
             min_mV=min(min_mV,mV)
-            min_mV=min(min_mV,mV)
-            
+            min_mA=min(min_mA,mA)
+        ts=array[i][0]/1E6
+        V_pp=(max_mV-min_mV)/1E3
+        I_pp=(max_mA-min_mA)/1E3
+        P=E/full_delta
+        results.append([ts, V_pp, I_pp, P])
