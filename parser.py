@@ -20,11 +20,11 @@ def to_csv(outfile, time,pins):
         header="timestamp"
         for p in pins.keys():
             header += ",Pin " + str(p)
-        outfile.write(header)
+        outfile.write(header + "\n")
     line = str(time)
     for mv in pins.values():
         line += ',' + str(mv)
-    outfile.write(line)
+    outfile.write(line + "\n")
 
 
 def to_pcm(outfile, time, pins):
@@ -41,7 +41,12 @@ with open(sys.argv[1],'rb') as f:
     with open(sys.argv[3], outmode) as outfile:
         while True:
             header = f.read(5)
-            (time,n_readings)=struct.unpack('<IB', header)
+            time=0
+            n_readings=0
+            try:
+                (time,n_readings)=struct.unpack('<IB', header)
+            except struct.error:
+                exit("reached end of file")
             pins =  {}
             if n_readings>0:
                 for i in range(0,n_readings):
