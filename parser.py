@@ -37,6 +37,10 @@ outmode = 'w'
 if sys.argv[2] in ['pcm']:
     outmode = 'wb'
 
+array = {}
+def to_array(outfile,time,pins):
+    array+=[time,pins]
+
 with open(sys.argv[1],'rb') as f:
     with open(sys.argv[3], outmode) as outfile:
         while True:
@@ -46,7 +50,8 @@ with open(sys.argv[1],'rb') as f:
             try:
                 (time,n_readings)=struct.unpack('<IB', header)
             except struct.error:
-                exit("reached end of file")
+                print("reached end of file")
+                return
             pins =  {}
             if n_readings>0:
                 for i in range(0,n_readings):
@@ -55,8 +60,14 @@ with open(sys.argv[1],'rb') as f:
                     pins[pin]=millivolt
                     #print("Pin %d has %dmV at %dµS"%(pin,millivolt,time))
                 if sys.argv[2]=='csv':
-                    to_csv(outfile, time,pins)
+                    to_csv(outfile,time,pins)
                 elif sys.argv[2]=='pcm':
-                    to_pcm(outfile, time, pins)
+                    to_pcm(outfile,time,pins)
+                elif sys.argv[2]=='graph':
+                    import grapher
+                    to_array(outfile,time,pins)
             else:
                 print("REBOOT")
+
+if sys.argv[2]=='graph':
+    do_graph(array)
