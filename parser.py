@@ -3,7 +3,7 @@ current_pin=39
 
 voltage_offset=1683#mV
 current_offset=1564#mV
-voltage_multi=4580/-61#mV/mV
+voltage_multi=458/-61#mV/mV
 current_multi=134.1/-71#mA/mV
 
 window_size=4000
@@ -120,7 +120,7 @@ def read_file(infile,outfile):
                 to_csv(outfile,time,pins)
             elif sys.argv[2]=='pcm':
                 to_pcm(outfile,time,pins)
-            elif sys.argv[2]=='parse':
+            elif sys.argv[2] in ['parse', 'graph']:
                 array.append([time,pins])
                 if len(array) >= window_size:
                     to_parsed(array)
@@ -137,3 +137,13 @@ with open(sys.argv[1],'rb') as infile:
             read_file(infile,outmode)
     else:
         read_file(infile,None)
+
+
+
+if sys.argv[2]=='graph':
+    from matplotlib import pyplot as plt
+    fig,ax = plt.subplots()
+    ax.set_ylabel("Power [W]")
+    ax.set_xlabel("Time [s]")
+    ax.plot([row[0] for row in results],[row[3] for row in results])
+    plt.show()
