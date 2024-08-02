@@ -26,7 +26,7 @@ void ARDUINO_ISR_ATTR adcComplete() {
     for (uint8_t i = 0; i < n_pins; i++) {
       adc_buf[adc_buf_write_idx + 0] = result[i].pin;
       adc_buf[adc_buf_write_idx + 1] = result[i].avg_read_mvolts & 0xFF;
-      adc_buf[adc_buf_write_idx + 2] = (result[i].avg_read_mvolts >> 1) & 0xFF;
+      adc_buf[adc_buf_write_idx + 2] = (result[i].avg_read_mvolts >> 8) & 0xFF;
       adc_buf_write_idx += 3;  //data 3bytes * n_pins
 
       update_stats(i, result[i].avg_read_mvolts);
