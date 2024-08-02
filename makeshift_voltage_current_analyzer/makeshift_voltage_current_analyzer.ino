@@ -7,6 +7,7 @@ BluetoothSerial SerialBT;
 #include "conf.h"
 #include "stats.h"
 #include "meas.h"
+#include "debug.h"
 
 File file;
 void setup() {
@@ -51,12 +52,6 @@ void setup() {
       break;
   }
 
-  uint64_t cardSize = SD_MMC.cardSize() / (1024 * 1024);
-  Serial.printf("SD Card Size: %lluMB\n", cardSize);
-
-  Serial.printf("Total space: %lluMB\n", SD_MMC.totalBytes() / (1024 * 1024));
-  Serial.printf("Used space: %lluMB\n", SD_MMC.usedBytes() / (1024 * 1024));
-
   file = SD_MMC.open(filename, FILE_APPEND);
   if (!file) {
     Serial.println(F("Failed to open file for appending"));
@@ -68,13 +63,8 @@ void setup() {
     }
   }
   //end of copied section
-  uint64_t bytes_free = SD_MMC.totalBytes() - SD_MMC.usedBytes();
-  float mb_per_min = (bytes_per_second / 1E6) * 60;
-  Serial.print(F("Bitrate [MB/min]: "));
-  Serial.println(mb_per_min);
-  float rec_mins = bytes_free / (bytes_per_second * 60.0);
-  Serial.print(F("Recording time left [min]: "));
-  Serial.println(rec_mins);
+
+  print_sd_stats(Serial);
 
   for (uint8_t i = 0; i < HEADER_SIZE; i++) file.write((uint8_t)0x00);  //zeroed-out header means reboot
   Serial.println(F("SD Card OK"));
@@ -109,4 +99,6 @@ void loop() {
     last_stats = millis();
     output_stats();
   }
+  parse_serial_cmd(Serial);
+  parse_serial_cmd(SerialBT);
 }
