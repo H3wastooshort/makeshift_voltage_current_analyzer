@@ -162,7 +162,8 @@ with open(sys.argv[1],'rb') as infile:
 
 
 def config_axis(ax,offset):
-    ax.spines["right"].set_position(("axes", offset))
+    if offset != 0:
+        ax.spines["right"].set_position(("axes", offset))
     ax.set_frame_on(True)
     ax.patch.set_visible(False)
     for sp in ax.spines.values():
@@ -201,11 +202,11 @@ if sys.argv[2]=='graph':
     ax11.set_ylabel("Power [W]")
     ax12.set_ylabel("Peak-to-Peak Voltage [V]")
     ax13.set_ylabel("Peak-to-Peak Current [A]")
-    ax11.plot(results['f'],results['P'],color='#0F0F0F',zorder=0)
-    ax12.plot(results['f'],results['V_min'],color='blue',zorder=-1)
-    ax12.plot(results['f'],results['V_max'],color='blue',zorder=-2)
-    ax13.plot(results['f'],results['I_min'],color='red',zorder=-3)
-    ax13.plot(results['f'],results['I_max'],color='red',zorder=-4)
+    ax11.scatter(results['f'],results['P'],color='#0F0F0F',zorder=0)
+    ax12.scatter(results['f'],results['V_min'],color='blue',zorder=-1)
+    ax12.scatter(results['f'],results['V_max'],color='blue',zorder=-2)
+    ax13.scatter(results['f'],results['I_min'],color='red',zorder=-3)
+    ax13.scatter(results['f'],results['I_max'],color='red',zorder=-4)
     lines = [ax11,ax12,ax13]
     ax11.legend(lines, [l.get_label() for l in lines])
     
