@@ -8,6 +8,9 @@ current_multi=134.1/-71#mA/mV
 
 window_size=4000
 
+upper_thresh=200 #real mV
+lower_thresh=-200 #real mV
+
 ####
 
 import sys,struct
@@ -66,7 +69,7 @@ def get_energy(delta_uS,mV,mA):
     return mV*mA*delta_uS / (1E3*1E3*1E5) #energy in J
 
 array=[]
-results=[]
+results={'ts':[],'f':[],'P':[],'V_min':[],'V_max':[],'I_min':[],'I_max':[]}
 last_uS = 0
 def to_parsed(array):
     global last_uS
@@ -76,6 +79,8 @@ def to_parsed(array):
     max_mA=-0xFFFF
     E=0
     full_delta=0
+    zero_crossings=0
+    last_reading_above=False
     for k in range(0,window_size):
         time=array[k][0]
         pins=array[k][1]
@@ -90,13 +95,28 @@ def to_parsed(array):
         max_mA=max(max_mA,mA)
         min_mV=min(min_mV,mV)
         min_mA=min(min_mA,mA)
+        
+        if last_reading_above:
+            if mV < lower_thresh:
+                zero_crossings+=1
+                last_reading_above=False
+        else:
+            if mV > upper_thresh:
+                zero_crossings+=1
+                last_reading_above=True
+    time_passed=full_delta/1E6
     ts=array[0][0]/1E6
     V_pp=(max_mV-min_mV)/1E3
     I_pp=(max_mA-min_mA)/1E3
-    P=E/(full_delta/1E6)
-    r=[ts, V_pp, I_pp, P]
-    print(r)
-    results.append(r)
+    P=E/time_passed
+    f=(zero_crossings/2)/time_passed
+    results['ts'].append([ts])
+    results['f'].append([f])
+    results['P'].append([P])
+    results['V_min'].append([min_mV/1E3])
+    results['V_max'].append([max_mV/1E3])
+    results['I_min'].append([min_mA/1E3])
+    results['I_max'].append([max_mA/1E3])
 
 def read_file(infile,outfile):
     global array
@@ -120,10 +140,12 @@ def read_file(infile,outfile):
                 to_csv(outfile,time,pins)
             elif sys.argv[2]=='pcm':
                 to_pcm(outfile,time,pins)
-            elif sys.argv[2] in ['parse', 'graph']:
+            elif sys.argv[2] in ['calc_csv', 'graph']:
                 array.append([time,pins])
                 if len(array) >= window_size:
                     to_parsed(array)
+                    if sys.argv[2] == 'calc_csv':
+                        pass
                     array=[]
             else:
                 quit("unknown mode")
@@ -132,18 +154,59 @@ def read_file(infile,outfile):
             print("REBOOT")
 
 with open(sys.argv[1],'rb') as infile:
-    if sys.argv[2] in ['csv','pcm']:
+    if sys.argv[2] in ['csv','calc_csv','pcm']:
         with open(sys.argv[3], outmode) as outfile:
             read_file(infile,outmode)
     else:
         read_file(infile,None)
 
 
+def config_axis(ax,offset):
+    ax.spines["right"].set_position(("axes", offset))
+    ax.set_frame_on(True)
+    ax.patch.set_visible(False)
+    for sp in ax.spines.values():
+        sp.set_visible(False)
+    ax.spines["right"].set_visible(True)
 
 if sys.argv[2]=='graph':
     from matplotlib import pyplot as plt
-    fig,ax = plt.subplots()
-    ax.set_ylabel("Power [W]")
-    ax.set_xlabel("Time [s]")
-    ax.plot([row[0] for row in results],[row[3] for row in results])
+    fig,(ax01,ax11) = plt.subplots(2)
+  
+    ax02=ax01.twinx()
+    config_axis(ax02,0)
+    ax03=ax01.twinx()
+    config_axis(ax03,1.2)
+    ax04=ax01.twinx()
+    config_axis(ax04,2.4)
+    ax12=ax11.twinx()
+    config_axis(ax12,0)
+    ax13=ax11.twinx()
+    config_axis(ax13,1.2)
+
+    ax01.set_xlabel("Time [s]")
+    ax01.set_ylabel("Power [W]")
+    ax02.set_ylabel("Peak-to-Peak Voltage [V]")
+    ax03.set_ylabel("Peak-to-Peak Current [A]")
+    ax01.plot(results['ts'],results['P'],color='#0F0F0F',zorder=0)
+    ax04.plot(results['ts'],results['f'],color='green',zorder=-1)
+    ax02.plot(results['ts'],results['V_min'],color='blue',zorder=-2)
+    ax02.plot(results['ts'],results['V_max'],color='blue',zorder=-3)
+    ax03.plot(results['ts'],results['I_min'],color='red',zorder=-4)
+    ax03.plot(results['ts'],results['I_max'],color='red',zorder=-5)
+    lines = [ax01,ax02,ax03,ax04]
+    ax01.legend(lines, [l.get_label() for l in lines])
+    
+    ax11.set_xlabel("Frequency [Hz]")
+    ax11.set_ylabel("Power [W]")
+    ax12.set_ylabel("Peak-to-Peak Voltage [V]")
+    ax13.set_ylabel("Peak-to-Peak Current [A]")
+    ax11.plot(results['f'],results['P'],color='#0F0F0F',zorder=0)
+    ax12.plot(results['f'],results['V_min'],color='blue',zorder=-1)
+    ax12.plot(results['f'],results['V_max'],color='blue',zorder=-2)
+    ax13.plot(results['f'],results['I_min'],color='red',zorder=-3)
+    ax13.plot(results['f'],results['I_max'],color='red',zorder=-4)
+    lines = [ax11,ax12,ax13]
+    ax11.legend(lines, [l.get_label() for l in lines])
+    
     plt.show()
