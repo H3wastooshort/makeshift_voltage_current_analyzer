@@ -118,48 +118,6 @@ def to_parsed(array):
     results['I_min'].append([min_mA/1E3])
     results['I_max'].append([max_mA/1E3])
 
-def read_file(infile,outfile):
-    global array
-    while True:
-        header = infile.read(5)
-        time=0
-        n_readings=0
-        try:
-            (time,n_readings)=struct.unpack('<IB', header)
-        except struct.error:
-            print("reached end of file")
-            return
-        pins =  {}
-        if n_readings>0:
-            for i in range(0,n_readings):
-                reading = infile.read(3)
-                (pin,millivolt)=struct.unpack('<BH', reading)
-                pins[pin]=millivolt
-                #print("Pin %d has %dmV at %dµS"%(pin,millivolt,time))
-            if sys.argv[2]=='csv':
-                to_csv(outfile,time,pins)
-            elif sys.argv[2]=='pcm':
-                to_pcm(outfile,time,pins)
-            elif sys.argv[2] in ['calc_csv', 'graph']:
-                array.append([time,pins])
-                if len(array) >= window_size:
-                    to_parsed(array)
-                    if sys.argv[2] == 'calc_csv':
-                        pass
-                    array=[]
-            else:
-                quit("unknown mode")
-                
-        else:
-            print("REBOOT")
-
-with open(sys.argv[1],'rb') as infile:
-    if sys.argv[2] in ['csv','calc_csv','pcm']:
-        with open(sys.argv[3], outmode) as outfile:
-            read_file(infile,outmode)
-    else:
-        read_file(infile,None)
-
 
 def config_axis(ax,offset):
     if offset != 0:
@@ -170,7 +128,7 @@ def config_axis(ax,offset):
         sp.set_visible(False)
     ax.spines["right"].set_visible(True)
 
-if sys.argv[2]=='graph':
+def graph_data():
     from matplotlib import pyplot as plt
     fig,(ax01,ax11) = plt.subplots(2)
   
@@ -211,3 +169,56 @@ if sys.argv[2]=='graph':
     ax11.legend(lines, [l.get_label() for l in lines])
     
     plt.show()
+
+def read_file(infile,outfile):
+    print("reading file")
+    global array, last_uS
+    while True:
+        header = infile.read(5)
+        time=0
+        n_readings=0
+        try:
+            (time,n_readings)=struct.unpack('<IB', header)
+        except struct.error:
+            print("reached end of file")
+            return
+        pins =  {}
+        if n_readings>0:
+            for i in range(0,n_readings):
+                reading = infile.read(3)
+                (pin,millivolt)=struct.unpack('<BH', reading)
+                pins[pin]=millivolt
+                #print("Pin %d has %dmV at %dµS"%(pin,millivolt,time))
+            if sys.argv[2]=='csv':
+                to_csv(outfile,time,pins)
+            elif sys.argv[2]=='pcm':
+                to_pcm(outfile,time,pins)
+            elif sys.argv[2] in ['calc_csv', 'graph']:
+                array.append([time,pins])
+                if len(array) >= window_size:
+                    to_parsed(array)
+                    if sys.argv[2] == 'calc_csv':
+                        pass
+                    array=[]
+            else:
+                quit("unknown mode")
+                
+        else:
+            print("REBOOT")
+            if sys.argv[2]=='graph':
+                graph_data()
+                array=[]
+                last_uS=0
+                for k in results.keys():
+                    results[k]=[]
+                print("Reading next section...")
+
+with open(sys.argv[1],'rb') as infile:
+    if sys.argv[2] in ['csv','calc_csv','pcm']:
+        with open(sys.argv[3], outmode) as outfile:
+            read_file(infile,outmode)
+    else:
+        read_file(infile,None)
+
+if sys.argv[2]=='graph':
+    graph_data()
