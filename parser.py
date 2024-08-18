@@ -13,10 +13,12 @@ lower_thresh=-200 #real mV
 
 ####
 
-import sys,struct
+import sys,struct,math
 
 if len(sys.argv) not in [3,4]:
     quit("parser.py [filename] [mode] [output]")
+
+parser_mode = sys.argv[2]
 
 ####
 
@@ -55,7 +57,7 @@ def to_pcm(outfile, time, pins):
         outfile.write(struct.pack('H',mv))
 
 outmode = 'w'
-if sys.argv[2] in ['pcm']:
+if parser_mode in ['pcm']:
     outmode = 'wb'
 
 ####
@@ -110,14 +112,46 @@ def to_parsed(array):
     I_pp=(max_mA-min_mA)/1E3
     P=E/time_passed
     f=(zero_crossings/2)/time_passed
-    results['ts'].append([ts])
-    results['f'].append([f])
-    results['P'].append([P])
-    results['V_min'].append([min_mV/1E3])
-    results['V_max'].append([max_mV/1E3])
-    results['I_min'].append([min_mA/1E3])
-    results['I_max'].append([max_mA/1E3])
+    
+    rv={}
+    rv['ts']=ts
+    rv['f']=f
+    rv['P']=P
+    rv['V_min']=min_mV/1E3
+    rv['V_max']=max_mV/1E3
+    rv['I_min']=min_mA/1E3
+    rv['I_max']=max_mA/1E3
+    return rv
 
+####
+
+
+
+R_load=0
+R_dyno=0
+if parser_mode == 'inductivity':
+    R_dyno = float(input("DC Resistance of Dyno [Ohm]: "))
+    R_load = float(input("DCR of load [Ohm]: "))
+R_total=R_load+R_dyno
+
+# X_dyno
+# ^
+# |\
+# | \
+# |  \
+# |   \ Z
+# |    \
+# |     \
+# |      \
+#  -------> R_dyno + R_load
+
+def calc_inductivity(V_rms, I_rms, f, R):
+    Z = V_rms / I_rms
+    X_dyno = math.sqrt(pow(Z,2)-pow(R,2))
+    L = X_dyno / ( 2*math.pi * f )
+    return (L, X_dyno, Z)
+
+####
 
 def config_axis(ax,offset):
     if offset != 0:
@@ -189,15 +223,35 @@ def read_file(infile,outfile):
                 (pin,millivolt)=struct.unpack('<BH', reading)
                 pins[pin]=millivolt
                 #print("Pin %d has %dmV at %dµS"%(pin,millivolt,time))
-            if sys.argv[2]=='csv':
+            if parser_mode=='csv':
                 to_csv(outfile,time,pins)
-            elif sys.argv[2]=='pcm':
+            elif parser_mode=='pcm':
                 to_pcm(outfile,time,pins)
-            elif sys.argv[2] in ['calc_csv', 'graph']:
+            elif parser_mode in ['calc_csv', 'graph', 'inductivity']:
                 array.append([time,pins])
                 if len(array) >= window_size:
-                    to_parsed(array)
-                    if sys.argv[2] == 'calc_csv':
+                    parsed_chunk = to_parsed(array)
+                    if parser_mode == 'graph':
+                            results['ts'].append([parsed_chunk['ts']])
+                            results['f'].append([parsed_chunk['f']])
+                            results['P'].append([parsed_chunk['P']])
+                            results['V_min'].append([parsed_chunk['V_min']])
+                            results['V_max'].append([parsed_chunk['V_max']])
+                            results['I_min'].append([parsed_chunk['I_min']])
+                            results['I_max'].append([parsed_chunk['I_max']])
+                    elif parser_mode == 'inductivity':
+                        # assuming perfect symetrical sinewave
+                        V_rms = (parsed_chunk['V_max'] - parsed_chunk['V_min']) * math.sqrt(2)
+                        I_rms = (parsed_chunk['I_max'] - parsed_chunk['I_min']) * math.sqrt(2)
+                        print("V=%05.1f I=%05.3f"%(V_rms, I_rms))
+                        try:
+                            (L, X_dyno, Z) = calc_inductivity(V_rms, I_rms, parsed_chunk['f'], R_total)
+                            print("L=%EH X=%EOhm Z=%EOhm"%(L, X_dyno, Z))
+                        except ValueError:
+                            print("invalid (VE)")
+                        except ZeroDivisionError:
+                            print("invalid (/0)")
+                    elif parser_mode == 'calc_csv':
                         pass
                     array=[]
             else:
@@ -205,7 +259,7 @@ def read_file(infile,outfile):
                 
         else:
             print("REBOOT")
-            if sys.argv[2]=='graph':
+            if parser_mode=='graph':
                 graph_data()
                 array=[]
                 last_uS=0
@@ -214,11 +268,11 @@ def read_file(infile,outfile):
                 print("Reading next section...")
 
 with open(sys.argv[1],'rb') as infile:
-    if sys.argv[2] in ['csv','calc_csv','pcm']:
+    if parser_mode in ['csv','calc_csv','pcm']:
         with open(sys.argv[3], outmode) as outfile:
             read_file(infile,outmode)
     else:
         read_file(infile,None)
 
-if sys.argv[2]=='graph':
+if parser_mode=='graph':
     graph_data()
