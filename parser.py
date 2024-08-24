@@ -270,7 +270,7 @@ def read_file(infile,outfile):
 with open(sys.argv[1],'rb') as infile:
     if parser_mode in ['csv','calc_csv','pcm']:
         with open(sys.argv[3], outmode) as outfile:
-            read_file(infile,outmode)
+            read_file(infile,outfile)
     else:
         read_file(infile,None)
 
