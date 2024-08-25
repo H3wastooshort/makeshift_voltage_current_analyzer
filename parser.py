@@ -165,6 +165,7 @@ def config_axis(ax,offset):
 def graph_data():
     from matplotlib import pyplot as plt
     fig,(ax01,ax11) = plt.subplots(2)
+    fig.subplots_adjust(right=0.75)
   
     ax02=ax01.twinx()
     config_axis(ax02,0)
