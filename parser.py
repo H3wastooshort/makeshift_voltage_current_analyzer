@@ -1,10 +1,10 @@
 voltage_pin=36
 current_pin=39
 
-voltage_offset=1682#mV
-current_offset=1640#mV
-voltage_multi=-5.55#mV/mV
-current_multi=-8.33#rough value #mA/mV
+voltage_offset=1683#mV
+current_offset=1564#mV
+voltage_multi=458/-61#mV/mV
+current_multi=134.1/-71#mA/mV
 
 window_size=4000
 
@@ -269,7 +269,7 @@ def read_file(infile,outfile):
                         except ZeroDivisionError:
                             print("invalid (/0)")
                     elif parser_mode == 'calc_csv':
-                        print(parsed_chunk)
+                        pass
                     array=[]
             else:
                 quit("unknown mode")
