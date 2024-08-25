@@ -205,9 +205,22 @@ def graph_data():
     
     plt.show()
 
+def find_offset(arr):
+    v_sum=0
+    i_sum=0
+    n=0
+    for k in arr:
+        v_sum += k[1][voltage_pin]
+        i_sum += k[1][current_pin]
+        n += 1
+    cal = (v_sum/n,i_sum/n)
+    print("V offset = %.1f  I offset = %.1f" % cal)
+    return cal
+
 def read_file(infile,outfile):
     print("reading file")
-    global array, last_uS
+    global array, last_uS, current_offset, voltage_offset
+    first_chunk=True
     while True:
         header = infile.read(5)
         time=0
@@ -231,6 +244,9 @@ def read_file(infile,outfile):
             elif parser_mode in ['calc_csv', 'graph', 'inductivity']:
                 array.append([time,pins])
                 if len(array) >= window_size:
+                    if first_chunk: #assume first second has 0V and 0A
+                        first_chunk=False
+                        (voltage_offset,current_offset)=find_offset(array)
                     parsed_chunk = to_parsed(array)
                     if parser_mode == 'graph':
                             results['ts'].append([parsed_chunk['ts']])
